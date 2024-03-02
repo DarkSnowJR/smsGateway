@@ -11,6 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Define a threshold for very high and very low sending rates
+const highSendingRateThreshold = 10000 // You can adjust this threshold based on your requirements
+const lowSendingRateThreshold = 1000    // You can adjust this threshold based on your requirements
+
 func MessageCreate(c *gin.Context) {
 	var body struct {
 		To      []string `json:"to" binding:"required"`
@@ -95,6 +99,33 @@ func sendTextTask(messageID uint) {
 	if err := initializers.DB.First(&user, message.UserID).Error; err != nil {
 		fmt.Println("Error fetching user:", err)
 		return
+	}
+
+	// Fetch the number of text messages for the user
+	var textMessageCount int64
+	if err := initializers.DB.Model(&models.Text{}).
+		Joins("JOIN messages ON texts.message_id = messages.id").
+		Where("messages.user_id = ?", user.ID).
+		Count(&textMessageCount).Error; err != nil {
+		fmt.Println("Error fetching text message count for user:", err)
+		return
+	}
+
+	// Calculate the sending rate based on the number of text messages
+	sendingRate := float64(textMessageCount)
+
+	fmt.Println("Sending Rate: ", sendingRate)
+
+	// Check the sending rate and apply different logic based on it
+	if sendingRate >= highSendingRateThreshold {
+		// Logic for very high sending rate customers
+		fmt.Println("Handling very high sending rate...")
+	} else if sendingRate <= lowSendingRateThreshold {
+		// Logic for very low sending rate customers
+		fmt.Println("Handling very low sending rate...")
+	} else {
+		// Default logic for normal sending rate customers
+		fmt.Println("Handling normal sending rate...")
 	}
 
 	// Get the message price from the environment variable
