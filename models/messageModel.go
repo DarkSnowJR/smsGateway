@@ -7,7 +7,7 @@ import (
 
 type Message struct {
 	gorm.Model
-	To      pq.StringArray `gorm:"type:varchar(255)[]"`
+	To      pq.StringArray `gorm:"type:text[]"`
 	UserID  uint           `gorm:"foreignkey:User"`
 	Content string
 	Status  bool `gorm:"default:false"`

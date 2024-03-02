@@ -7,5 +7,5 @@ type Text struct {
 	To        string `gorm:"required"`
 	MessageID uint   `gorm:"foreignkey:Message"`
 	Content   string
-	Status    bool `gorm:"default:true"`
+	Status    bool
 }

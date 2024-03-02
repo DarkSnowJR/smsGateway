@@ -120,21 +120,38 @@ func sendTextTask(messageID uint) {
 
 	// Loop through receivers and create Text records
 	for _, receiver := range receivers {
-		text := models.Text{
-			To:        receiver,
-			MessageID: messageID,
-			Content:   message.Content,
-		}
 
 		// Check if the user's balance is sufficient for this text
 		if user.Balance >= messagePrice {
+			text := models.Text{
+				To:        receiver,
+				MessageID: messageID,
+				Content:   message.Content,
+				Status:    true,
+			}
 			initializers.DB.Create(&text)
 
-			// Deduct the cost from the user's balance
+			tx := initializers.DB.Begin()
+			// Deduct cost and update user balance
 			user.Balance -= messagePrice
+			if err := tx.Save(&user).Error; err != nil {
+				tx.Rollback()
+				// Handle the error, e.g., log it or return an error response
+				fmt.Println("Error updating user balance:", err)
+				return
+			}
+
+			// Commit the transaction
+			tx.Commit()
+
 		} else {
 			// If balance is not enough, set text status to false
-			text.Status = false
+			text := models.Text{
+				To:        receiver,
+				MessageID: messageID,
+				Content:   message.Content,
+				Status:    false,
+			}
 			initializers.DB.Create(&text)
 		}
 	}
