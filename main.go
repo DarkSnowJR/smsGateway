@@ -25,5 +25,8 @@ func main() {
 
 	router.GET("/texts/:messageID", controllers.TextList)
 
-	router.Run()
+	err := router.Run()
+	if err != nil {
+		return
+	}
 }
